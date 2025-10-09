@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "Person")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Person {
@@ -29,7 +29,6 @@ public class Person {
     private String username;
 
     @Column(name = "password", nullable = false)
-    @NotEmpty(message = "Password should be not empty")
     @Size(min = 6, message = "Password should be at least 6 characters")
     private String password;
 
@@ -44,6 +43,15 @@ public class Person {
     @Column(name = "role")
     @Enumerated
     private Role role;
+
+    @Column(name = "oauth_provider")
+    private String oauthProvider; // "google", "github", "apple"
+
+    @Column(name = "oauth_id")
+    private String oauthId; // ID пользователя от провайдера
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
 
     // Автоматически устанавливаем createdAt и роль по умолчанию
     @PrePersist
