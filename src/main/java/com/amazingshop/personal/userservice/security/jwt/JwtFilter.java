@@ -1,7 +1,6 @@
 package com.amazingshop.personal.userservice.security.jwt;
 
-import com.amazingshop.personal.userservice.security.JwtUtil;
-import com.amazingshop.personal.userservice.services.PeopleDetailsService;
+import com.amazingshop.personal.userservice.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,12 +20,12 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final PeopleDetailsService peopleDetailsService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    public JwtFilter(JwtUtil jwtUtil, PeopleDetailsService peopleDetailsService) {
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtil = jwtUtil;
-        this.peopleDetailsService = peopleDetailsService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -44,7 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     return;
                 }
                 String username = jwtUtil.validateTokenAndRetrieveClaim(jwt);
-                UserDetails userDetails = peopleDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails,

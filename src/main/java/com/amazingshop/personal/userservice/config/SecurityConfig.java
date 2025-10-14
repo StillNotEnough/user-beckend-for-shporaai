@@ -2,7 +2,7 @@ package com.amazingshop.personal.userservice.config;
 
 import com.amazingshop.personal.userservice.enums.Role;
 import com.amazingshop.personal.userservice.security.jwt.JwtFilter;
-import com.amazingshop.personal.userservice.services.PeopleDetailsService;
+import com.amazingshop.personal.userservice.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,12 +29,12 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    private final PeopleDetailsService peopleDetailService;
+    private final UserDetailsServiceImpl userDetailsService;
     private final JwtFilter jwtFilter;
 
     @Autowired
-    public SecurityConfig(PeopleDetailsService peopleDetailService, JwtFilter jwtFilter) {
-        this.peopleDetailService = peopleDetailService;
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtFilter jwtFilter) {
+        this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
     }
 
@@ -43,7 +43,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(configurationSource()))
-                .userDetailsService(peopleDetailService)
+                .userDetailsService(userDetailsService)
                 .oauth2Login(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (Публичные эндпоинты)

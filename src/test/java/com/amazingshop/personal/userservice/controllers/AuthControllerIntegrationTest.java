@@ -1,7 +1,7 @@
 package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.UserServiceApplication;
-import com.amazingshop.personal.userservice.dto.requests.PersonDTO;
+import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ public class AuthControllerIntegrationTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
-    private PersonDTO testUser;
+    private UserDTO testUser;
 
     @Autowired
     public AuthControllerIntegrationTest(MockMvc mockMvc, ObjectMapper objectMapper) {
@@ -34,7 +34,7 @@ public class AuthControllerIntegrationTest {
 
     @BeforeEach
     void setUp(){
-        testUser = new PersonDTO("integrationTestUser", "securePass123", "test@integration.com");
+        testUser = new UserDTO("integrationTestUser", "securePass123", "test@integration.com");
     }
 
     @Test
@@ -54,7 +54,7 @@ public class AuthControllerIntegrationTest {
     @Test
     void signup_shouldReturnBadRequestForInvalidData() throws Exception {
         // Arrange: создаем пользователя с невалидным email
-        PersonDTO invalidUser = new PersonDTO("validUser", "validPass", "invalid-email");
+        UserDTO invalidUser = new UserDTO("validUser", "validPass", "invalid-email");
 
         // Act & Assert
         mockMvc.perform(post("/api/v1/auth/signup")

@@ -1,6 +1,6 @@
 package com.amazingshop.personal.userservice.dto.responses;
 
-import com.amazingshop.personal.userservice.dto.requests.PersonDTO;
+import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @Getter
 @AllArgsConstructor
-public class PersonResponse {
+public class UserResponse {
 
-    private List<PersonDTO> people;
+    private List<UserDTO> people;
 }

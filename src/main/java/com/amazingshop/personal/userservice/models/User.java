@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "Person")
+@Table(name = "User")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Person {
+public class User {
 
     @Id
     @Column(name = "id")
@@ -64,7 +64,7 @@ public class Person {
         }
     }
 
-    public Person(String username, String password, String email) {
+    public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;

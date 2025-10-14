@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PersonDTO {
+public class UserDTO {
 
     @NotEmpty(message = "Username should be not empty")
     @Size(min = 2, max = 30, message = "Username should be for 2 to 30 symbols")

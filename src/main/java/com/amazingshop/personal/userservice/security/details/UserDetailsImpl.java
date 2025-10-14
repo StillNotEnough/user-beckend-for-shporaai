@@ -1,6 +1,6 @@
 package com.amazingshop.personal.userservice.security.details;
 
-import com.amazingshop.personal.userservice.models.Person;
+import com.amazingshop.personal.userservice.models.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,27 +8,27 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-public class PersonDetailsImpl implements UserDetails {
+public class UserDetailsImpl implements UserDetails {
 
-    private Person person;
+    private User user;
 
-    public PersonDetailsImpl(Person person) {
-        this.person = person;
+    public UserDetailsImpl(User user) {
+        this.user = user;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + person.getRole().toString()));
+        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().toString()));
     }
 
     @Override
     public String getPassword() {
-        return this.person.getPassword();
+        return this.user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return this.person.getUsername();
+        return this.user.getUsername();
     }
 
     @Override

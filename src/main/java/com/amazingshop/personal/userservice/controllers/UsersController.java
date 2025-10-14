@@ -1,12 +1,12 @@
 package com.amazingshop.personal.userservice.controllers;
 
-import com.amazingshop.personal.userservice.dto.requests.PersonDTO;
-import com.amazingshop.personal.userservice.models.Person;
-import com.amazingshop.personal.userservice.security.details.PersonDetailsImpl;
+import com.amazingshop.personal.userservice.dto.requests.UserDTO;
+import com.amazingshop.personal.userservice.dto.responses.UserResponse;
+import com.amazingshop.personal.userservice.models.User;
+import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.services.AdminService;
 import com.amazingshop.personal.userservice.services.ConverterService;
-import com.amazingshop.personal.userservice.services.PeopleService;
-import com.amazingshop.personal.userservice.dto.responses.PersonResponse;
+import com.amazingshop.personal.userservice.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +24,13 @@ import java.util.Map;
 public class UsersController {
 
     private final AdminService adminService;
-    private final PeopleService peopleService;
+    private final UserService userService;
     private final ConverterService converterService;
 
     @Autowired
-    public UsersController(AdminService adminService, PeopleService peopleService, ConverterService converterService) {
+    public UsersController(AdminService adminService, UserService userService, ConverterService converterService) {
         this.adminService = adminService;
-        this.peopleService = peopleService;
+        this.userService = userService;
         this.converterService = converterService;
     }
 
@@ -39,17 +39,17 @@ public class UsersController {
      * GET /api/v1/users/me
      */
     @GetMapping("/me")
-    public ResponseEntity<PersonDTO> getCurrentUser() {
+    public ResponseEntity<UserDTO> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        PersonDetailsImpl personDetails = (PersonDetailsImpl) authentication.getPrincipal();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        Person person = peopleService.findPersonByPersonName(personDetails.getUsername())
+        User user = userService.findPersonByPersonName(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
 
-        PersonDTO personDTO = converterService.convertedToPersonDTO(person);
-        log.info("User info requested: {}", person.getUsername());
+        UserDTO userDTO = converterService.convertedToPersonDTO(user);
+        log.info("User info requested: {}", user.getUsername());
 
-        return ResponseEntity.ok(personDTO);
+        return ResponseEntity.ok(userDTO);
     }
 
     /**
@@ -57,21 +57,21 @@ public class UsersController {
      * PUT /api/v1/users/me
      */
     @PutMapping("/me")
-    public ResponseEntity<PersonDTO> updateCurrentUser(@RequestBody PersonDTO personDTO) {
+    public ResponseEntity<UserDTO> updateCurrentUser(@RequestBody UserDTO userDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        PersonDetailsImpl personDetails = (PersonDetailsImpl) authentication.getPrincipal();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        Person currentPerson = peopleService.findPersonByPersonName(personDetails.getUsername())
+        User currentUser = userService.findPersonByPersonName(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
 
         // Обновляем только разрешенные поля
-        currentPerson.setEmail(personDTO.getEmail());
+        currentUser.setEmail(userDTO.getEmail());
         // Не обновляем username, role, password через этот эндпоинт
 
-        Person updatedPerson = peopleService.save(currentPerson);
-        PersonDTO updatedDTO = converterService.convertedToPersonDTO(updatedPerson);
+        User updatedUser = userService.save(currentUser);
+        UserDTO updatedDTO = converterService.convertedToPersonDTO(updatedUser);
 
-        log.info("User info updated: {}", updatedPerson.getUsername());
+        log.info("User info updated: {}", updatedUser.getUsername());
         return ResponseEntity.ok(updatedDTO);
     }
 
@@ -93,14 +93,14 @@ public class UsersController {
      */
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PersonResponse> getAllUsers() {
-        List<Person> persons = peopleService.findAll();
-        List<PersonDTO> personDTOs = persons.stream()
+    public ResponseEntity<UserResponse> getAllUsers() {
+        List<User> users = userService.findAll();
+        List<UserDTO> userDTOS = users.stream()
                 .map(converterService::convertedToPersonDTO)
                 .toList();
 
-        log.info("All users requested by admin, count: {}", personDTOs.size());
-        return ResponseEntity.ok(new PersonResponse(personDTOs));
+        log.info("All users requested by admin, count: {}", userDTOS.size());
+        return ResponseEntity.ok(new UserResponse(userDTOS));
     }
 
     /**
@@ -109,12 +109,12 @@ public class UsersController {
      */
     @GetMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PersonDTO> getUserById(@PathVariable Long id) {
-        Person person = peopleService.findPersonByIdOrThrow(id);
-        PersonDTO personDTO = converterService.convertedToPersonDTO(person);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        User user = userService.findPersonByIdOrThrow(id);
+        UserDTO userDTO = converterService.convertedToPersonDTO(user);
 
-        log.info("User requested by admin: {}", person.getUsername());
-        return ResponseEntity.ok(personDTO);
+        log.info("User requested by admin: {}", user.getUsername());
+        return ResponseEntity.ok(userDTO);
     }
 
     /**

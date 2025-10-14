@@ -2,8 +2,8 @@ package com.amazingshop.personal.userservice.services;
 
 import com.amazingshop.personal.userservice.dto.responses.OAuth2UserInfo;
 import com.amazingshop.personal.userservice.enums.Role;
-import com.amazingshop.personal.userservice.models.Person;
-import com.amazingshop.personal.userservice.repositories.PeopleRepository;
+import com.amazingshop.personal.userservice.models.User;
+import com.amazingshop.personal.userservice.repositories.UsersRepository;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -24,13 +24,13 @@ public class OAuth2Service {
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
 
-    private final PeopleRepository peopleRepository;
+    private final UsersRepository usersRepository;
     private final GoogleIdTokenVerifier googleVerifier;
 
     @Autowired
-    public OAuth2Service(PeopleRepository peopleRepository,
+    public OAuth2Service(UsersRepository usersRepository,
                          @Value("${spring.security.oauth2.client.registration.google.client-id}") String clientId) {
-        this.peopleRepository = peopleRepository;
+        this.usersRepository = usersRepository;
 
         // Создаем верификатор для Google ID токенов
         this.googleVerifier = new GoogleIdTokenVerifier.Builder(
@@ -71,11 +71,11 @@ public class OAuth2Service {
      * Поиск или создание пользователя через OAuth2
      */
     @Transactional
-    public Person findOrCreateOAuth2User(OAuth2UserInfo userInfo) {
+    public User findOrCreateOAuth2User(OAuth2UserInfo userInfo) {
         log.info("Finding or creating OAuth2 user: {} from {}", userInfo.getEmail(), userInfo.getProvider());
 
         // Ищем пользователя по OAuth ID
-        Optional<Person> existingPerson = peopleRepository
+        Optional<User> existingPerson = usersRepository
                 .findByOauthProviderAndOauthId(userInfo.getProvider(), userInfo.getId());
 
         if (existingPerson.isPresent()) {
@@ -84,39 +84,39 @@ public class OAuth2Service {
         }
 
         // Проверяем, существует ли пользователь с таким email (обычная регистрация)
-        Optional<Person> emailUser = peopleRepository.findPersonByEmail(userInfo.getEmail());
+        Optional<User> emailUser = usersRepository.findPersonByEmail(userInfo.getEmail());
 
         if (emailUser.isPresent()) {
-            Person person = emailUser.get();
+            User user = emailUser.get();
 
             // Если у пользователя уже есть обычная регистрация, привязываем OAuth
-            if (person.getOauthProvider() == null) {
-                person.setOauthProvider(userInfo.getProvider());
-                person.setOauthId(userInfo.getId());
-                person.setProfilePictureUrl(userInfo.getPicture());
+            if (user.getOauthProvider() == null) {
+                user.setOauthProvider(userInfo.getProvider());
+                user.setOauthId(userInfo.getId());
+                user.setProfilePictureUrl(userInfo.getPicture());
 
-                log.info("Linked OAuth2 to existing user: {}", person.getUsername());
-                return peopleRepository.save(person);
+                log.info("Linked OAuth2 to existing user: {}", user.getUsername());
+                return usersRepository.save(user);
             }
 
             throw new RuntimeException("User with this email already exists with different OAuth provider");
         }
 
         // Создаем нового пользователя
-        Person newPerson = new Person();
-        newPerson.setEmail(userInfo.getEmail());
-        newPerson.setUsername(generateUsernameFromEmail(userInfo.getEmail()));
-        newPerson.setOauthProvider(userInfo.getProvider());
-        newPerson.setOauthId(userInfo.getId());
-        newPerson.setProfilePictureUrl(userInfo.getPicture());
-        newPerson.setRole(Role.USER);
-        newPerson.setCreatedAt(java.time.LocalDateTime.now());
+        User newUser = new User();
+        newUser.setEmail(userInfo.getEmail());
+        newUser.setUsername(generateUsernameFromEmail(userInfo.getEmail()));
+        newUser.setOauthProvider(userInfo.getProvider());
+        newUser.setOauthId(userInfo.getId());
+        newUser.setProfilePictureUrl(userInfo.getPicture());
+        newUser.setRole(Role.USER);
+        newUser.setCreatedAt(java.time.LocalDateTime.now());
         // Password остается null для OAuth2 пользователей
 
-        Person savedPerson = peopleRepository.save(newPerson);
-        log.info("Created new OAuth2 user: {}", savedPerson.getUsername());
+        User savedUser = usersRepository.save(newUser);
+        log.info("Created new OAuth2 user: {}", savedUser.getUsername());
 
-        return savedPerson;
+        return savedUser;
     }
 
     /**
@@ -127,7 +127,7 @@ public class OAuth2Service {
         String username = baseUsername;
         int counter = 1;
 
-        while (peopleRepository.existsByUsername(username)) {
+        while (usersRepository.existsByUsername(username)) {
             username = baseUsername + counter;
             counter++;
         }

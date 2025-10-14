@@ -1,7 +1,7 @@
 package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.responses.ErrorResponse;
-import com.amazingshop.personal.userservice.util.exceptions.PersonNotFoundException;
+import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -115,8 +115,8 @@ public class GlobalExceptionHandler {
     /// Business logic and data (Бизнес-логика и данные)
     /// ////////////////////////////////////////////////
 
-    @ExceptionHandler(PersonNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerPersonNotFoundException(PersonNotFoundException e) {
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerPersonNotFoundException(UserNotFoundException e) {
         log.warn("Person not found: {}", e.getMessage());
         return new ResponseEntity<>(ErrorResponse.makeErrorResponse("Person not found"),
                 HttpStatus.NOT_FOUND);

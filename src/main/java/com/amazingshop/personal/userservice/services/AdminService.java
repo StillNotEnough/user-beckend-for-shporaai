@@ -1,7 +1,7 @@
 package com.amazingshop.personal.userservice.services;
 
 import com.amazingshop.personal.userservice.enums.Role;
-import com.amazingshop.personal.userservice.models.Person;
+import com.amazingshop.personal.userservice.models.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -12,10 +12,10 @@ import java.util.List;
 @Slf4j
 public class AdminService {
 
-    private final PeopleService peopleService;
+    private final UserService userService;
 
-    public AdminService(PeopleService peopleService) {
-        this.peopleService = peopleService;
+    public AdminService(UserService userService) {
+        this.userService = userService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -24,22 +24,22 @@ public class AdminService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public List<Person> getAllUsers() {
+    public List<User> getAllUsers() {
         log.info("Admin requested all users list");
-        return peopleService.findAll();
+        return userService.findAll();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(Long userId) {
         log.info("Admin requested to delete user with id: {}", userId);
-        peopleService.deleteById(userId);
+        userService.deleteById(userId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public Person promoteToAdmin(Long userId) {
+    public User promoteToAdmin(Long userId) {
         log.info("Admin requested to promote user {} to admin", userId);
-        Person person = peopleService.findPersonByIdOrThrow(userId);
-        person.setRole(Role.ADMIN);
-        return peopleService.save(person);
+        User user = userService.findPersonByIdOrThrow(userId);
+        user.setRole(Role.ADMIN);
+        return userService.save(user);
     }
 }

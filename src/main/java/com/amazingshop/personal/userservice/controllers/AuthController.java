@@ -3,15 +3,15 @@ package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.requests.AuthenticationDTO;
 import com.amazingshop.personal.userservice.dto.requests.OAuth2LoginRequest;
-import com.amazingshop.personal.userservice.dto.requests.PersonDTO;
+import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.amazingshop.personal.userservice.dto.responses.OAuth2UserInfo;
-import com.amazingshop.personal.userservice.models.Person;
-import com.amazingshop.personal.userservice.security.JwtUtil;
+import com.amazingshop.personal.userservice.models.User;
+import com.amazingshop.personal.userservice.security.jwt.JwtUtil;
 import com.amazingshop.personal.userservice.services.ConverterService;
 import com.amazingshop.personal.userservice.services.OAuth2Service;
 import com.amazingshop.personal.userservice.services.RegistrationService;
 import com.amazingshop.personal.userservice.dto.responses.JwtResponse;
-import com.amazingshop.personal.userservice.util.validators.PersonValidator;
+import com.amazingshop.personal.userservice.util.validators.UserValidator;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AuthController {
 
-    private final PersonValidator personValidator;
+    private final UserValidator userValidator;
     private final RegistrationService registrationService;
     private final JwtUtil jwtUtil;
     private final ConverterService converterService;
@@ -34,10 +34,10 @@ public class AuthController {
     private final OAuth2Service oAuth2Service;
 
     @Autowired
-    public AuthController(PersonValidator personValidator, RegistrationService registrationService,
+    public AuthController(UserValidator userValidator, RegistrationService registrationService,
                           JwtUtil jwtUtil, ConverterService converterService, AuthenticationManager authenticationManager,
                           OAuth2Service oAuth2Service) {
-        this.personValidator = personValidator;
+        this.userValidator = userValidator;
         this.registrationService = registrationService;
         this.jwtUtil = jwtUtil;
         this.converterService = converterService;
@@ -50,19 +50,19 @@ public class AuthController {
      * POST /api/v1/auth/signup
      */
     @PostMapping("/signup")
-    public ResponseEntity<JwtResponse> performRegistration(@RequestBody @Valid PersonDTO personDTO) {
-        log.info("Registration attempt for username: {}", personDTO.getUsername());
+    public ResponseEntity<JwtResponse> performRegistration(@RequestBody @Valid UserDTO userDTO) {
+        log.info("Registration attempt for username: {}", userDTO.getUsername());
 
-        Person person = converterService.convertedToPerson(personDTO);
-        personValidator.validateAndThrow(person);
-        registrationService.register(person);
+        User user = converterService.convertedToPerson(userDTO);
+        userValidator.validateAndThrow(user);
+        registrationService.register(user);
 
-        String token = jwtUtil.generateToken(person.getUsername());
+        String token = jwtUtil.generateToken(user.getUsername());
         long expiresIn = jwtUtil.getExpirationTime();
 
-        log.info("User registered successfully: {}", person.getUsername());
+        log.info("User registered successfully: {}", user.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new JwtResponse(token, expiresIn, person.getUsername()));
+                .body(new JwtResponse(token, expiresIn, user.getUsername()));
     }
 
     /**
@@ -97,14 +97,14 @@ public class AuthController {
             OAuth2UserInfo userInfo = oAuth2Service.verifyGoogleToken(request.getIdToken());
 
             // Находим или создаем пользователя
-            Person person = oAuth2Service.findOrCreateOAuth2User(userInfo);
+            User user = oAuth2Service.findOrCreateOAuth2User(userInfo);
 
             // Генерируем JWT токен
-            String token = jwtUtil.generateToken(person.getUsername());
+            String token = jwtUtil.generateToken(user.getUsername());
             long expiresIn = jwtUtil.getExpirationTime();
 
-            log.info("Google OAuth2 login successful for: {}", person.getUsername());
-            return ResponseEntity.ok(new JwtResponse(token, expiresIn, person.getUsername()));
+            log.info("Google OAuth2 login successful for: {}", user.getUsername());
+            return ResponseEntity.ok(new JwtResponse(token, expiresIn, user.getUsername()));
 
         } catch (Exception e) {
             log.error("Google OAuth2 login failed: {}", e.getMessage());

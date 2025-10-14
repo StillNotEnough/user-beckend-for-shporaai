@@ -1,7 +1,7 @@
 package com.amazingshop.personal.userservice.services;
 
-import com.amazingshop.personal.userservice.models.Person;
-import com.amazingshop.personal.userservice.security.details.PersonDetailsImpl;
+import com.amazingshop.personal.userservice.models.User;
+import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,27 +13,27 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class PeopleDetailsService implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final PeopleService peopleService;
+    private final UserService userService;
 
     @Autowired
-    public PeopleDetailsService(PeopleService peopleService) {
-        this.peopleService = peopleService;
+    public UserDetailsServiceImpl(UserService userService) {
+        this.userService = userService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Loading user by username: {}", username);
 
-        Optional<Person> person = peopleService.findPersonByPersonName(username);
+        Optional<User> user = userService.findPersonByPersonName(username);
 
-        if (person.isEmpty()) {
+        if (user.isEmpty()) {
             log.warn("User not found: {}", username);
             throw new UsernameNotFoundException("User not found: " + username);
         }
 
         log.debug("User found: {}", username);
-        return new PersonDetailsImpl(person.get());
+        return new UserDetailsImpl(user.get());
     }
 }

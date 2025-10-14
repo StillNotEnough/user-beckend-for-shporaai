@@ -1,7 +1,7 @@
 package com.amazingshop.personal.userservice.services;
 
-import com.amazingshop.personal.userservice.dto.requests.PersonDTO;
-import com.amazingshop.personal.userservice.models.Person;
+import com.amazingshop.personal.userservice.dto.requests.UserDTO;
+import com.amazingshop.personal.userservice.models.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,11 +19,11 @@ public class ConverterService {
         this.modelMapper = modelMapper;
     }
 
-    public Person convertedToPerson(PersonDTO personDTO) {
-        return modelMapper.map(personDTO, Person.class);
+    public User convertedToPerson(UserDTO userDTO) {
+        return modelMapper.map(userDTO, User.class);
     }
 
-    public PersonDTO convertedToPersonDTO(Person person) {
-        return modelMapper.map(person, PersonDTO.class);
+    public UserDTO convertedToPersonDTO(User user) {
+        return modelMapper.map(user, UserDTO.class);
     }
 }

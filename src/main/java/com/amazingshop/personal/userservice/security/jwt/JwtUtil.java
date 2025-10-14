@@ -1,4 +1,4 @@
-package com.amazingshop.personal.userservice.security;
+package com.amazingshop.personal.userservice.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;

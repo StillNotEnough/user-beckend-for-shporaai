@@ -1,8 +1,8 @@
 package com.amazingshop.personal.userservice.services;
 
-import com.amazingshop.personal.userservice.models.Person;
 import com.amazingshop.personal.userservice.enums.Role;
-import com.amazingshop.personal.userservice.util.validators.PersonValidator;
+import com.amazingshop.personal.userservice.models.User;
+import com.amazingshop.personal.userservice.util.validators.UserValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,34 +15,33 @@ import java.time.LocalDateTime;
 @Slf4j
 public class RegistrationService {
 
-    private final PeopleService peopleService;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final PersonValidator personValidator;
+    private final UserValidator userValidator;
 
-    public RegistrationService(PeopleService peopleService,
-                               PasswordEncoder passwordEncoder,
-                               PersonValidator personValidator) {
-        this.peopleService = peopleService;
+    public RegistrationService(PasswordEncoder passwordEncoder,
+                               UserService userService, UserValidator userValidator) {
+        this.userService = userService;
+        this.userValidator = userValidator;
         this.passwordEncoder = passwordEncoder;
-        this.personValidator = personValidator;
     }
 
     @Transactional
-    public Person register(Person person) {
-        log.info("Attempting to register user: {}", person.getUsername());
+    public User register(User user) {
+        log.info("Attempting to register user: {}", user.getUsername());
 
         // Валидация перед сохранением
-        personValidator.validateAndThrow(person);
+        userValidator.validateAndThrow(user);
 
         // Подготовка данных
-        person.setPassword(passwordEncoder.encode(person.getPassword()));
-        person.setCreatedAt(LocalDateTime.now());
-        person.setRole(Role.USER);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setCreatedAt(LocalDateTime.now());
+        user.setRole(Role.USER);
 
         // Сохранение
-        Person savedPerson = peopleService.save(person);
+        User savedUser = userService.save(user);
 
-        log.info("User successfully registered: {}", savedPerson.getUsername());
-        return savedPerson;
+        log.info("User successfully registered: {}", savedUser.getUsername());
+        return savedUser;
     }
 }
