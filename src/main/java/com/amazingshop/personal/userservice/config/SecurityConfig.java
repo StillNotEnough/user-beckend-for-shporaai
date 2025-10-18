@@ -56,6 +56,9 @@ public class SecurityConfig {
                         // Admin endpoints (Админские эндпоинты)
                         .requestMatchers("/api/v1/users/admin/**").hasRole(Role.ADMIN.toString())
 
+                        // Chat history endpoints - требуют аутентификации
+                        .requestMatchers("/api/v1/chats/**").hasAnyRole(Role.USER.toString(), Role.ADMIN.toString())
+
                         // Custom endpoints (Пользовательские эндпоинты)
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").hasAnyRole(Role.USER.toString(), Role.ADMIN.toString())
                         .requestMatchers(HttpMethod.PUT, "/api/v1/users/me").hasAnyRole(Role.USER.toString(), Role.ADMIN.toString())
