@@ -1,0 +1,120 @@
+package com.amazingshop.personal.userservice.services;
+
+import com.amazingshop.personal.userservice.models.Chat;
+import com.amazingshop.personal.userservice.models.ChatMessage;
+import com.amazingshop.personal.userservice.repositories.ChatRepository;
+import com.amazingshop.personal.userservice.repositories.ChatMessageRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@Slf4j
+public class ChatService {
+
+    private final ChatRepository chatRepository;
+    private final ChatMessageRepository messageRepository;
+
+    @Autowired
+    public ChatService(ChatRepository chatRepository, ChatMessageRepository messageRepository) {
+        this.chatRepository = chatRepository;
+        this.messageRepository = messageRepository;
+    }
+
+    public List<Chat> getUserChats(Long userId, String search, String subject) {
+        if (search != null && !search.trim().isEmpty()) {
+            return chatRepository.findByUserIdAndTitleContainingIgnoreCaseOrderByUpdatedAtDesc(userId, search);
+        }
+        if (subject != null && !subject.trim().isEmpty()) {
+            return chatRepository.findByUserIdAndSubjectOrderByUpdatedAtDesc(userId, subject);
+        }
+        return chatRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+    }
+
+    @Transactional
+    public Chat createChat(Long userId, String title, String subject) {
+        Chat chat = new Chat();
+        chat.setUserId(userId);
+        chat.setTitle(title != null ? truncateTitle(title) : "New Chat");
+        chat.setSubject(subject);
+        return chatRepository.save(chat);
+    }
+
+    @Transactional
+    public void deleteChat(Long chatId, Long userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Chat not found"));
+
+        if (!chat.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        chatRepository.deleteById(chatId);
+    }
+
+    public Chat getChatById(Long chatId, Long userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Chat not found"));
+
+        if (!chat.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        return chat;
+    }
+
+    public List<ChatMessage> getChatMessages(Long chatId, Long userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Chat not found"));
+
+        if (!chat.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        return messageRepository.findByChatIdOrderByCreatedAtAsc(chatId);
+    }
+
+    @Transactional
+    public ChatMessage addMessage(Long chatId, Long userId, String content, String role, String templateUsed) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new RuntimeException("Chat not found"));
+
+        if (!chat.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        // Auto-generate title from first user message
+        if (chat.getTitle().equals("New Chat") && "user".equals(role)) {
+            chat.setTitle(truncateTitle(content));
+            chatRepository.save(chat);
+        }
+
+        // Update chat timestamp
+        chat.setUpdatedAt(java.time.LocalDateTime.now());
+        chatRepository.save(chat);
+
+        ChatMessage message = new ChatMessage();
+        message.setChatId(chatId);
+        message.setContent(content);
+        message.setRole(role);
+        message.setTemplateUsed(templateUsed);
+
+        return messageRepository.save(message);
+    }
+
+    private String truncateTitle(String text) {
+        String[] words = text.trim().split("\\s+");
+        StringBuilder title = new StringBuilder();
+
+        for (int i = 0; i < Math.min(words.length, 8); i++) {
+            if (title.length() + words[i].length() > 40) break;
+            if (title.length() > 0) title.append(" ");
+            title.append(words[i]);
+        }
+
+        return title.length() > 0 ? title.toString() : "New Chat";
+    }
+}
