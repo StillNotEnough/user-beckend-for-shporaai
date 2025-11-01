@@ -1,12 +1,14 @@
 package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.requests.UserDTO;
+import com.amazingshop.personal.userservice.dto.responses.CurrentUserResponse;
 import com.amazingshop.personal.userservice.dto.responses.UserResponse;
 import com.amazingshop.personal.userservice.models.User;
 import com.amazingshop.personal.userservice.security.details.UserDetailsImpl;
 import com.amazingshop.personal.userservice.services.AdminService;
 import com.amazingshop.personal.userservice.services.ConverterService;
 import com.amazingshop.personal.userservice.services.UserService;
+import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,44 +37,78 @@ public class UsersController {
     }
 
     /**
-     * Получение информации о текущем пользователе
+     * ✨ ОБНОВЛЕНО: Получение информации о текущем пользователе
      * GET /api/v1/users/me
+     *
+     * Возвращает актуальные данные пользователя из БД
+     * БЕЗ чувствительной информации (пароля, refresh token)
      */
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser() {
+    public ResponseEntity<CurrentUserResponse> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         User user = userService.findPersonByPersonName(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
+                .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
-        UserDTO userDTO = converterService.convertedToPersonDTO(user);
-        log.info("User info requested: {}", user.getUsername());
+        // Строим безопасный ответ
+        CurrentUserResponse response = CurrentUserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .oauthProvider(user.getOauthProvider())
+                .createdAt(user.getCreatedAt())
+                // ✨ Пока всем FREE, потом добавите логику подписок
+                .subscriptionPlan("FREE")
+                .subscriptionExpiresAt(null)
+                .build();
 
-        return ResponseEntity.ok(userDTO);
+        log.info("User info requested for: {}", user.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Обновление информации о текущем пользователе
+     * ✨ ОБНОВЛЕНО: Обновление информации о текущем пользователе
      * PUT /api/v1/users/me
+     *
+     * Позволяет обновить email и profile picture
+     * Username, password, role обновляются через отдельные эндпоинты
      */
     @PutMapping("/me")
-    public ResponseEntity<UserDTO> updateCurrentUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<CurrentUserResponse> updateCurrentUser(@RequestBody Map<String, String> updates) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         User currentUser = userService.findPersonByPersonName(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
+                .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         // Обновляем только разрешенные поля
-        currentUser.setEmail(userDTO.getEmail());
-        // Не обновляем username, role, password через этот эндпоинт
+        if (updates.containsKey("email")) {
+            currentUser.setEmail(updates.get("email"));
+        }
+
+        if (updates.containsKey("profilePictureUrl")) {
+            currentUser.setProfilePictureUrl(updates.get("profilePictureUrl"));
+        }
 
         User updatedUser = userService.save(currentUser);
-        UserDTO updatedDTO = converterService.convertedToPersonDTO(updatedUser);
 
-        log.info("User info updated: {}", updatedUser.getUsername());
-        return ResponseEntity.ok(updatedDTO);
+        CurrentUserResponse response = CurrentUserResponse.builder()
+                .id(updatedUser.getId())
+                .username(updatedUser.getUsername())
+                .email(updatedUser.getEmail())
+                .role(updatedUser.getRole())
+                .profilePictureUrl(updatedUser.getProfilePictureUrl())
+                .oauthProvider(updatedUser.getOauthProvider())
+                .createdAt(updatedUser.getCreatedAt())
+                .subscriptionPlan("FREE")
+                .subscriptionExpiresAt(null)
+                .build();
+
+        log.info("User info updated for: {}", updatedUser.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -111,18 +147,9 @@ public class UsersController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userService.findPersonByIdOrThrow(id);
+
         UserDTO userDTO = converterService.convertedToPersonDTO(user);
-
-        log.info("User requested by admin: {}", user.getUsername());
+        log.info("User {} requested by admin", id);
         return ResponseEntity.ok(userDTO);
-    }
-
-    /**
-     * Проверка работоспособности сервиса
-     * GET /api/v1/users/health
-     */
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Users service is running");
     }
 }
