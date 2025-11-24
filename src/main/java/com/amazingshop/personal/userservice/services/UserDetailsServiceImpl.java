@@ -26,7 +26,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Loading user by username: {}", username);
 
-        Optional<User> user = userService.findPersonByPersonName(username);
+        Optional<User> user = userService.findByUsername(username);
 
         if (user.isEmpty()) {
             log.warn("User not found: {}", username);

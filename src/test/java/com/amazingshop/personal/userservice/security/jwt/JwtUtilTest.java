@@ -1,6 +1,5 @@
 package com.amazingshop.personal.userservice.security.jwt;
 
-import com.amazingshop.personal.userservice.security.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +27,7 @@ public class JwtUtilTest {
     @Test
     void generate_and_validateToken_shouldWorkCorrectly(){
         // Act: генерация токена
-        String token = jwtUtil.generateToken(TEST_USERNAME);
+        String token = jwtUtil.generateAccessToken(TEST_USERNAME);
 
         // Assert (проверка)
         assertNotNull(token, "JWT token should not be null");

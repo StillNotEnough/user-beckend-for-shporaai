@@ -1,8 +1,8 @@
 package com.amazingshop.personal.userservice.services;
 
 import com.amazingshop.personal.userservice.enums.Role;
-import com.amazingshop.personal.userservice.models.Person;
-import com.amazingshop.personal.userservice.util.validators.PersonValidator;
+import com.amazingshop.personal.userservice.models.User;
+import com.amazingshop.personal.userservice.util.validators.UserValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,41 +20,41 @@ import static org.mockito.Mockito.*;
 public class RegistrationServiceTest {
 
     @Mock
-    private PeopleService peopleService;
+    private UserService userService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private PersonValidator personValidator;
+    private UserValidator userValidator;
 
     @InjectMocks
     private RegistrationService registrationService;
 
-    private Person testPerson;
+    private User testUser;
 
     @BeforeEach
     void setUp(){
-        testPerson = new Person("testUser", "testPassword", "test@example.com");
+        testUser = new User("testUser", "testPassword", "test@example.com");
     }
 
     @Test
     void register_shouldEncodePasswordAndSetUserRole(){
         // Arrange (подготовка)
         when(passwordEncoder.encode("testPassword")).thenReturn("encodedPassword");
-        when(peopleService.save(any(Person.class))).thenAnswer(invocation -> invocation.getArgument(0, Person.class));
+        when(userService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0, User.class));
 
         // Act (действие)
-        Person registratedPerson = registrationService.register(testPerson);
+        User registeredUser = registrationService.register(testUser);
 
         // Assert (проверка)
-        assertEquals("encodedPassword", registratedPerson.getPassword(), "Password should be encoded");
-        assertEquals(Role.USER, registratedPerson.getRole(), "Role should be set to USER by default");
-        assertNotNull(registratedPerson.getCreatedAt(), "Creation date should be set");
+        assertEquals("encodedPassword", registeredUser.getPassword(), "Password should be encoded");
+        assertEquals(Role.USER, registeredUser.getRole(), "Role should be set to USER by default");
+        assertNotNull(registeredUser.getCreatedAt(), "Creation date should be set");
 
         // Verify (проверка вызовов)
-        verify(personValidator, times(1)).validateAndThrow(testPerson);
+        verify(userValidator, times(1)).validateAndThrow(testUser);
         verify(passwordEncoder, times(1)).encode("testPassword");
-        verify(peopleService, times(1)).save(any(Person.class));
+        verify(userService, times(1)).save(any(User.class));
     }
 }

@@ -33,19 +33,17 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final ConverterService converterService;
     private final AuthenticationManager authenticationManager;
-    private final OAuth2Service oAuth2Service;
     private final UserService userService;
 
     @Autowired
     public AuthController(UserValidator userValidator, RegistrationService registrationService,
                           JwtUtil jwtUtil, ConverterService converterService, AuthenticationManager authenticationManager,
-                          OAuth2Service oAuth2Service, UserService userService) {
+                          UserService userService) {
         this.userValidator = userValidator;
         this.registrationService = registrationService;
         this.jwtUtil = jwtUtil;
         this.converterService = converterService;
         this.authenticationManager = authenticationManager;
-        this.oAuth2Service = oAuth2Service;
         this.userService = userService;
     }
 
@@ -57,7 +55,7 @@ public class AuthController {
     public ResponseEntity<TokenPairResponse> performRegistration(@RequestBody @Valid UserDTO userDTO) {
         log.info("Registration attempt for username: {}", userDTO.getUsername());
 
-        User user = converterService.convertedToPerson(userDTO);
+        User user = converterService.convertedToUser(userDTO);
         userValidator.validateAndThrow(user);
         registrationService.register(user);
 
@@ -93,7 +91,7 @@ public class AuthController {
                 authenticationDTO.getUsername(),
                 authenticationDTO.getPassword()));
 
-        User user = userService.findPersonByPersonName(authenticationDTO.getUsername())
+        User user = userService.findByUsername(authenticationDTO.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         String accessToken = jwtUtil.generateAccessToken(authenticationDTO.getUsername());
@@ -135,7 +133,7 @@ public class AuthController {
             }
 
             // Находим пользователя
-            User user = userService.findPersonByPersonName(username)
+            User user = userService.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
             // Проверяем совпадает ли refresh token с сохраненным в БД
@@ -185,7 +183,7 @@ public class AuthController {
         try {
             String username = jwtUtil.validateTokenAndRetrieveClaim(request.getRefreshToken());
 
-            User user = userService.findPersonByPersonName(username)
+            User user = userService.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
             // Удаляем refresh token из БД

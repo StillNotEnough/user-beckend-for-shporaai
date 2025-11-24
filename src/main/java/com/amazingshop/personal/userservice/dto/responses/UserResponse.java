@@ -12,5 +12,5 @@ import java.util.List;
 @AllArgsConstructor
 public class UserResponse {
 
-    private List<UserDTO> people;
+    private List<UserDTO> userDTOS;
 }

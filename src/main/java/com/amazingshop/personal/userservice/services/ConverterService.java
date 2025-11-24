@@ -16,11 +16,11 @@ public class ConverterService {
         this.modelMapper = modelMapper;
     }
 
-    public User convertedToPerson(UserDTO userDTO) {
+    public User convertedToUser(UserDTO userDTO) {
         return modelMapper.map(userDTO, User.class);
     }
 
-    public UserDTO convertedToPersonDTO(User user) {
+    public UserDTO convertedToUserDTO(User user) {
         return modelMapper.map(user, UserDTO.class);
     }
 }

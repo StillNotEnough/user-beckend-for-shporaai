@@ -35,7 +35,7 @@ public class ChatController {
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-        return userService.findPersonByPersonName(userDetails.getUsername())
+        return userService.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found!"))
                 .getId();
     }

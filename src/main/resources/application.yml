@@ -57,9 +57,8 @@ server:
   # JWT configuration
 jwt:
   secret: ${JWT_SECRET}
-  expiration:
-    access: 60000 #${JWT_ACCESS_EXPIRATION}
-    refresh: 300000 #${JWT_REFRESH_EXPIRATION}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:1800000}  #Access token - короткий, по умолч. 30 минут
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:1209600000}  #Refresh token - длинный, по умолч. 14 дней
 
 # Logging configuration
 logging:

@@ -11,10 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface UsersRepository extends JpaRepository<User, Long> {
-    Optional<User> findPersonByUsername(@NotEmpty(message = "Username should be not empty") @Size(min = 2, max = 30,
+    Optional<User> findByUsername(@NotEmpty(message = "Username should be not empty") @Size(min = 2, max = 30,
                                         message = "Username should be for 2 to 30 symbols") String username);
 
-    Optional<User> findPersonByEmail(@NotEmpty(message = "Email should be not empty") @Email(
+    Optional<User> findByEmail(@NotEmpty(message = "Email should be not empty") @Email(
                                                message = "Email should be valid") String email);
 
     Optional<User> findByOauthProviderAndOauthId(String provider, String oauthId);

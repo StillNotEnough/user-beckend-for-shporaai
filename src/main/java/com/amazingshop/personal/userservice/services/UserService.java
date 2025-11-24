@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
-@Slf4j
 public class UserService {
 
     private final UsersRepository usersRepository;
@@ -23,19 +23,19 @@ public class UserService {
         this.usersRepository = usersRepository;
     }
 
-    public Optional<User> findPersonByPersonName(String username) {
+    public Optional<User> findByUsername(String username) {
         log.debug("Searching for person by username: {}", username);
-        return usersRepository.findPersonByUsername(username);
+        return usersRepository.findByUsername(username);
     }
 
-    public Optional<User> findPersonByEmail(String email) {
-        log.debug("Searching for person by email: {}", email);
-        return usersRepository.findPersonByEmail(email);
+    public Optional<User> findByEmail(String email) {
+        log.debug("Searching for user by email: {}", email);
+        return usersRepository.findByEmail(email);
     }
 
-    public User findPersonByIdOrThrow(Long id) {
+    public User findUserByIdOrThrow(Long id) {
         return usersRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Person with id " + id + " not found"));
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
     public List<User> findAll() {

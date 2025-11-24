@@ -38,7 +38,7 @@ public class AdminService {
     @PreAuthorize("hasRole('ADMIN')")
     public User promoteToAdmin(Long userId) {
         log.info("Admin requested to promote user {} to admin", userId);
-        User user = userService.findPersonByIdOrThrow(userId);
+        User user = userService.findUserByIdOrThrow(userId);
         user.setRole(Role.ADMIN);
         return userService.save(user);
     }

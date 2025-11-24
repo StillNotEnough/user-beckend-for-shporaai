@@ -48,7 +48,7 @@ public class UsersController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        User user = userService.findPersonByPersonName(userDetails.getUsername())
+        User user = userService.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         // Строим безопасный ответ
@@ -81,7 +81,7 @@ public class UsersController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        User currentUser = userService.findPersonByPersonName(userDetails.getUsername())
+        User currentUser = userService.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         // Обновляем только разрешенные поля
@@ -132,7 +132,7 @@ public class UsersController {
     public ResponseEntity<UserResponse> getAllUsers() {
         List<User> users = userService.findAll();
         List<UserDTO> userDTOS = users.stream()
-                .map(converterService::convertedToPersonDTO)
+                .map(converterService::convertedToUserDTO)
                 .toList();
 
         log.info("All users requested by admin, count: {}", userDTOS.size());
@@ -146,9 +146,9 @@ public class UsersController {
     @GetMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        User user = userService.findPersonByIdOrThrow(id);
+        User user = userService.findUserByIdOrThrow(id);
 
-        UserDTO userDTO = converterService.convertedToPersonDTO(user);
+        UserDTO userDTO = converterService.convertedToUserDTO(user);
         log.info("User {} requested by admin", id);
         return ResponseEntity.ok(userDTO);
     }

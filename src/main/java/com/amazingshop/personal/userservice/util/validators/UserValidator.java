@@ -54,7 +54,7 @@ public class UserValidator implements Validator {
             throw new UserValidationException("Username should be between 2 and 30 characters!");
         }
 
-        Optional<User> existingPerson = userService.findPersonByPersonName(username);
+        Optional<User> existingPerson = userService.findByUsername(username);
         if (existingPerson.isPresent()){
             throw new UserValidationException("A person with this username already exists!");
         }
@@ -69,7 +69,7 @@ public class UserValidator implements Validator {
             throw new UserValidationException("Invalid email format!");
         }
 
-        Optional<User> existingPerson = userService.findPersonByEmail(email);
+        Optional<User> existingPerson = userService.findByEmail(email);
         if (existingPerson.isPresent()) {
             throw new UserValidationException("A person with this email already exists!");
         }

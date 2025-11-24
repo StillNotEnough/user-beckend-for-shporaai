@@ -16,20 +16,18 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Component
-@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secret;
 
-    // Access token - короткий (15-30 минут)
-    @Value("${jwt.access-token-expiration:1800000}") // по умолчанию 30 минут
+    @Value("${jwt.access-token-expiration:1800000}")
     private long accessTokenExpiration;
 
-    // Refresh token - длинный (2 недели)
-    @Value("${jwt.refresh-token-expiration:1209600000}") // по умолчанию 14 дней
+    @Value("${jwt.refresh-token-expiration:1209600000}")
     private long refreshTokenExpiration;
 
 
