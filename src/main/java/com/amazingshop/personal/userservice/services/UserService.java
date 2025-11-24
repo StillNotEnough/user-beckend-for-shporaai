@@ -42,14 +42,6 @@ public class UserService {
         return usersRepository.findAll();
     }
 
-    public boolean existsByUsername(String username) {
-        return usersRepository.existsByUsername(username);
-    }
-
-    public boolean existsByEmail(String email) {
-        return usersRepository.existsByEmail(email);
-    }
-
     @Transactional
     public User save(User user) {
         log.debug("Saving person: {}", user.getUsername());

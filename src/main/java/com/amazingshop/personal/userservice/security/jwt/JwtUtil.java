@@ -117,16 +117,4 @@ public class JwtUtil {
     public long getRefreshTokenExpiration() {
         return refreshTokenExpiration / 1000;
     }
-
-    /**
-     * Проверка истек ли токен
-     */
-    public boolean isTokenExpired(String token) {
-        try {
-            DecodedJWT jwt = JWT.decode(token);
-            return jwt.getExpiresAt().before(new Date());
-        } catch (Exception e) {
-            return true;
-        }
-    }
 }

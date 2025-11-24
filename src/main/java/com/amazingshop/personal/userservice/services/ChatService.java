@@ -59,16 +59,6 @@ public class ChatService {
         chatRepository.deleteById(chatId);
     }
 
-    public Chat getChatById(Long chatId, Long userId) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("Chat not found"));
-
-        if (!chat.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        return chat;
-    }
 
     public List<ChatMessage> getChatMessages(Long chatId, Long userId) {
         Chat chat = chatRepository.findById(chatId)
@@ -90,7 +80,7 @@ public class ChatService {
             throw new RuntimeException("Unauthorized");
         }
 
-        // ✨ НОВОЕ: Проверяем, является ли это первым сообщением пользователя
+        // Проверяем, является ли это первым сообщением пользователя
         boolean isFirstUserMessage = messageRepository.countByChatIdAndRole(chatId, "user") == 0;
 
         ChatMessage message = new ChatMessage();
@@ -102,7 +92,7 @@ public class ChatService {
 
         chatMessageRepository.save(message);
 
-        // ✨ НОВОЕ: Если это первое сообщение пользователя, обновляем title чата
+        // Если это первое сообщение пользователя, обновляем title чата
         if (isFirstUserMessage && "user".equals(role) && content != null && !content.trim().isEmpty()) {
             String newTitle = truncateTitle(content);
             chat.setTitle(newTitle);

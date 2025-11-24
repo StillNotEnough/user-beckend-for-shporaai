@@ -22,8 +22,4 @@ public class ErrorResponse {
     public static ErrorResponse makeErrorResponse(String message){
         return new ErrorResponse(message, System.currentTimeMillis());
     }
-
-    public static ErrorResponse makeErrorResponse(String message, String path, int status) {
-        return new ErrorResponse(message, System.currentTimeMillis(), path, status);
-    }
 }

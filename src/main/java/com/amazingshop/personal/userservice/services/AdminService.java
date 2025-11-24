@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 @Slf4j
+@Service
 public class AdminService {
 
     private final UserService userService;
@@ -42,4 +42,5 @@ public class AdminService {
         user.setRole(Role.ADMIN);
         return userService.save(user);
     }
+    // todo - реализовать админский контроллер
 }

@@ -44,9 +44,6 @@ public class User {
     @Enumerated
     private Role role;
 
-    @Column(name = "oauth_provider")
-    private String oauthProvider; // "google", "github", "apple"
-
     @Column(name = "oauth_id")
     private String oauthId; // ID пользователя от провайдера
 

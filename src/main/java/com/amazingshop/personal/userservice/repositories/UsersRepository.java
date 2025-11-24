@@ -16,9 +16,4 @@ public interface UsersRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(@NotEmpty(message = "Email should be not empty") @Email(
                                                message = "Email should be valid") String email);
-
-    Optional<User> findByOauthProviderAndOauthId(String provider, String oauthId);
-
-    boolean existsByUsername(String username);
-    boolean existsByEmail(String email);
 }

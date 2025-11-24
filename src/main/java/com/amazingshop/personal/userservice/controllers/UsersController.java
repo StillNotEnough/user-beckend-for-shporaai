@@ -58,7 +58,6 @@ public class UsersController {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .profilePictureUrl(user.getProfilePictureUrl())
-                .oauthProvider(user.getOauthProvider())
                 .createdAt(user.getCreatedAt())
                 //Пока всем FREE
                 .subscriptionPlan("FREE")
@@ -101,7 +100,6 @@ public class UsersController {
                 .email(updatedUser.getEmail())
                 .role(updatedUser.getRole())
                 .profilePictureUrl(updatedUser.getProfilePictureUrl())
-                .oauthProvider(updatedUser.getOauthProvider())
                 .createdAt(updatedUser.getCreatedAt())
                 .subscriptionPlan("FREE")
                 .subscriptionExpiresAt(null)
