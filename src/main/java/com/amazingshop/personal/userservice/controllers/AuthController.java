@@ -5,46 +5,32 @@ import com.amazingshop.personal.userservice.dto.requests.AuthenticationDTO;
 import com.amazingshop.personal.userservice.dto.requests.RefreshTokenRequest;
 import com.amazingshop.personal.userservice.dto.requests.UserDTO;
 import com.amazingshop.personal.userservice.dto.responses.TokenPairResponse;
-import com.amazingshop.personal.userservice.models.User;
-import com.amazingshop.personal.userservice.security.jwt.JwtUtil;
-import com.amazingshop.personal.userservice.interfaces.ConverterService;
+import com.amazingshop.personal.userservice.interfaces.AuthenticationService;
 import com.amazingshop.personal.userservice.interfaces.RegistrationService;
-import com.amazingshop.personal.userservice.interfaces.UserService;
-import com.amazingshop.personal.userservice.util.validators.UserValidator;
+import com.amazingshop.personal.userservice.interfaces.TokenService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final UserValidator userValidator;
     private final RegistrationService registrationService;
-    private final JwtUtil jwtUtil;
-    private final ConverterService converterService;
-    private final AuthenticationManager authenticationManager;
-    private final UserService userService;
+    private final AuthenticationService authenticationService;
+    private final TokenService tokenService;
 
     @Autowired
-    public AuthController(UserValidator userValidator, RegistrationService registrationService,
-                          JwtUtil jwtUtil, ConverterService converterService, AuthenticationManager authenticationManager,
-                          UserService userService) {
-        this.userValidator = userValidator;
+    public AuthController(RegistrationService registrationService,
+                          AuthenticationService authenticationService,
+                          TokenService tokenService) {
         this.registrationService = registrationService;
-        this.jwtUtil = jwtUtil;
-        this.converterService = converterService;
-        this.authenticationManager = authenticationManager;
-        this.userService = userService;
+        this.authenticationService = authenticationService;
+        this.tokenService = tokenService;
     }
 
     /**
@@ -55,28 +41,12 @@ public class AuthController {
     public ResponseEntity<TokenPairResponse> performRegistration(@RequestBody @Valid UserDTO userDTO) {
         log.info("Registration attempt for username: {}", userDTO.getUsername());
 
-        User user = converterService.convertedToUser(userDTO);
-        userValidator.validateAndThrow(user);
-        registrationService.register(user);
+        TokenPairResponse response = registrationService.register(userDTO);
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUsername());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
-
-        user.setRefreshToken(refreshToken);
-        user.setRefreshTokenExpiry(LocalDateTime.now()
-                .plusSeconds(jwtUtil.getRefreshTokenExpiration()));
-        userService.save(user);
-
-        log.info("User registered successfully: {}", user.getUsername());
+        log.info("User registered successfully: {}", userDTO.getUsername());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new TokenPairResponse(
-                        accessToken,
-                        jwtUtil.getAccessTokenExpiration(),
-                        refreshToken,
-                        jwtUtil.getRefreshTokenExpiration(),
-                        user.getUsername()
-                ));
+                .body(response);
     }
 
     /**
@@ -87,30 +57,11 @@ public class AuthController {
     public ResponseEntity<TokenPairResponse> performLogin(@RequestBody @Valid AuthenticationDTO authenticationDTO) {
         log.info("Login attempt for username: {}", authenticationDTO.getUsername());
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                authenticationDTO.getUsername(),
-                authenticationDTO.getPassword()));
-
-        User user = userService.findByUsername(authenticationDTO.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        String accessToken = jwtUtil.generateAccessToken(authenticationDTO.getUsername());
-        String refreshToken = jwtUtil.generateRefreshToken(authenticationDTO.getUsername());
-
-        user.setRefreshToken(refreshToken);
-        user.setRefreshTokenExpiry(LocalDateTime.now()
-                .plusSeconds(jwtUtil.getRefreshTokenExpiration()));
-        userService.save(user);
+        TokenPairResponse response = authenticationService.performLogin(authenticationDTO);
 
         log.info("User logged in successfully: {}", authenticationDTO.getUsername());
 
-        return ResponseEntity.ok(new TokenPairResponse(
-                accessToken,
-                jwtUtil.getAccessTokenExpiration(),
-                refreshToken,
-                jwtUtil.getRefreshTokenExpiration(),
-                authenticationDTO.getUsername()
-        ));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -122,53 +73,10 @@ public class AuthController {
         log.info("Token refresh attempt");
 
         try {
-            // Валидируем refresh token
-            String username = jwtUtil.validateTokenAndRetrieveClaim(request.getRefreshToken());
-
-            // Проверяем тип токена
-            String tokenType = jwtUtil.getTokenType(request.getRefreshToken());
-            if (!"refresh".equals(tokenType)) {
-                log.warn("Invalid token type for refresh: {}", tokenType);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            // Находим пользователя
-            User user = userService.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            // Проверяем совпадает ли refresh token с сохраненным в БД
-            if (!request.getRefreshToken().equals(user.getRefreshToken())) {
-                log.warn("Refresh token mismatch for user: {}", username);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            // Проверяем не истек ли refresh token
-            if (user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
-                log.warn("Refresh token expired for user: {}", username);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            // Генерируем новую пару токенов
-            String newAccessToken = jwtUtil.generateAccessToken(username);
-            String newRefreshToken = jwtUtil.generateRefreshToken(username);
-
-            // Обновляем refresh token в БД
-            user.setRefreshToken(newRefreshToken);
-            user.setRefreshTokenExpiry(LocalDateTime.now()
-                    .plusSeconds(jwtUtil.getRefreshTokenExpiration()));
-            userService.save(user);
-
-            log.info("Tokens refreshed successfully for user: {}", username);
-
-            return ResponseEntity.ok(new TokenPairResponse(
-                    newAccessToken,
-                    jwtUtil.getAccessTokenExpiration(),
-                    newRefreshToken,
-                    jwtUtil.getRefreshTokenExpiration(),
-                    username
-            ));
-
-        } catch (Exception e) {
+            TokenPairResponse response = tokenService.refreshToken(request);
+            log.info("Tokens refreshed successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) { // TODO: TokenRefreshException
             log.error("Token refresh failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -181,17 +89,9 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody @Valid RefreshTokenRequest request) {
         try {
-            String username = jwtUtil.validateTokenAndRetrieveClaim(request.getRefreshToken());
+            authenticationService.logout(request);
 
-            User user = userService.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            // Удаляем refresh token из БД
-            user.setRefreshToken(null);
-            user.setRefreshTokenExpiry(null);
-            userService.save(user);
-
-            log.info("User logged out successfully: {}", username);
+            log.info("Logout request processed successfully");
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {

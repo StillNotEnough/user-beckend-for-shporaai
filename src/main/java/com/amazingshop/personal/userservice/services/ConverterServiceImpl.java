@@ -17,10 +17,12 @@ public class ConverterServiceImpl implements ConverterService {
         this.modelMapper = modelMapper;
     }
 
+    @Override
     public User convertedToUser(UserDTO userDTO) {
         return modelMapper.map(userDTO, User.class);
     }
 
+    @Override
     public UserDTO convertedToUserDTO(User user) {
         return modelMapper.map(user, UserDTO.class);
     }
