@@ -7,6 +7,6 @@ import java.util.List;
 public interface AdminService {
     String sayForAdmin();
     List<User> getAllUsers();
-    void deleteUser();
+    void deleteUser(Long userId);
     User promoteToAdmin(Long userId);
 }

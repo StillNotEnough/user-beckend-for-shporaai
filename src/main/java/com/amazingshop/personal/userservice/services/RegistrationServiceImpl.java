@@ -43,7 +43,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     public TokenPairResponse register(UserDTO userDTO) {
         log.info("Registration attempt for username: {}", userDTO.getUsername());
 
-        User user = converterService.convertedToUser(userDTO);
+        User user = converterService.convertToUser(userDTO);
         User preparedUser = prepareUserForRegistration(user);
         User savedUser = userService.save(preparedUser);
 

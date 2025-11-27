@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/users/health", "/api/v1/auth/health").permitAll()
 
                         // Admin endpoints (Админские эндпоинты)
-                        .requestMatchers("/api/v1/users/admin/**").hasRole(Role.ADMIN.toString())
+                        .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.toString())
 
                         // Chat history endpoints - требуют аутентификации
                         .requestMatchers("/api/v1/chats/**").hasAnyRole(Role.USER.toString(), Role.ADMIN.toString())
