@@ -1,8 +1,10 @@
 package com.amazingshop.personal.userservice.interfaces;
 
+import com.amazingshop.personal.userservice.dto.responses.CurrentUserResponse;
 import com.amazingshop.personal.userservice.models.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface UserService {
@@ -13,4 +15,6 @@ public interface UserService {
     User save(User user);
     void deleteById(Long id);
     Long getCurrentUserId();
+    CurrentUserResponse getCurrentUserResponse();
+    CurrentUserResponse updateCurrentUserResponse(Map<String, String> updates);
 }
