@@ -1,6 +1,7 @@
 package com.amazingshop.personal.userservice.controllers;
 
 import com.amazingshop.personal.userservice.dto.responses.ErrorResponse;
+import com.amazingshop.personal.userservice.util.exceptions.UnauthorizedException;
 import com.amazingshop.personal.userservice.util.exceptions.UserNotFoundException;
 import com.amazingshop.personal.userservice.util.exceptions.UserValidationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -145,6 +146,15 @@ public class GlobalExceptionHandler {
         }
         return new ResponseEntity<>(ErrorResponse.makeErrorResponse(message),
                 HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException e) {
+        log.warn("Unauthorized access attempt: {}", e.getMessage());
+        return new ResponseEntity<>(
+                ErrorResponse.makeErrorResponse(e.getMessage()),
+                HttpStatus.FORBIDDEN // 403
+        );
     }
 
     /// ///////////////////////////////////////
