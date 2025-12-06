@@ -4,6 +4,7 @@ import com.amazingshop.personal.userservice.models.Chat;
 import com.amazingshop.personal.userservice.models.ChatMessage;
 import com.amazingshop.personal.userservice.repositories.ChatMessageRepository;
 import com.amazingshop.personal.userservice.repositories.ChatRepository;
+import com.amazingshop.personal.userservice.util.exceptions.UnauthorizedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -174,17 +175,15 @@ public class ChatServiceImplTest {
     }
 
     @Test
-    @DisplayName("deleteChat: должен выбросить исключение если пользователь не владелец")
-    void deleteChat_ShouldThrowException_WhenUserNotOwner() {
-        // Arrange
+    @DisplayName("deleteChat: должен выбросить UnauthorizedException если пользователь не владелец")
+    void deleteChat_ShouldThrowUnauthorizedException_WhenUserNotOwner() {
         Chat chat = createMockChat(CHAT_ID, "Test");
         when(chatRepository.findById(CHAT_ID)).thenReturn(Optional.of(chat));
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class,
                 () -> chatService.deleteChat(CHAT_ID, OTHER_USER_ID)
         );
-        assertEquals("Unauthorized", exception.getMessage());
+        assertTrue(exception.getMessage().contains("not authorized"));
         verify(chatRepository, never()).deleteById(any());
     }
 
@@ -210,14 +209,12 @@ public class ChatServiceImplTest {
     }
 
     @Test
-    @DisplayName("getChatMessages: должен выбросить исключение если пользователь не владелец")
-    void getChatMessages_ShouldThrowException_WhenUserNotOwner() {
-        // Arrange
+    @DisplayName("getChatMessages: должен выбросить UnauthorizedException если пользователь не владелец")
+    void getChatMessages_ShouldThrowUnauthorizedException_WhenUserNotOwner() {
         Chat chat = createMockChat(CHAT_ID, "Test");
         when(chatRepository.findById(CHAT_ID)).thenReturn(Optional.of(chat));
 
-        // Act & Assert
-        assertThrows(RuntimeException.class,
+        assertThrows(UnauthorizedException.class,
                 () -> chatService.getChatMessages(CHAT_ID, OTHER_USER_ID)
         );
     }
@@ -285,6 +282,17 @@ public class ChatServiceImplTest {
     }
 
     @Test
+    @DisplayName("addMessage: должен выбросить UnauthorizedException если пользователь не владелец")
+    void addMessage_ShouldThrowUnauthorizedException_WhenUserNotOwner() {
+        Chat chat = createMockChat(CHAT_ID, "Test");
+        when(chatRepository.findById(CHAT_ID)).thenReturn(Optional.of(chat));
+
+        assertThrows(UnauthorizedException.class,
+                () -> chatService.addMessage(CHAT_ID, OTHER_USER_ID, "Test", "user", null)
+        );
+    }
+
+    @Test
     @DisplayName("updateChatTitle: должен обновить title чата")
     void updateChatTitle_ShouldUpdateTitle() {
         // Arrange
@@ -300,6 +308,17 @@ public class ChatServiceImplTest {
         // Assert
         assertEquals(newTitle, result.getTitle());
         verify(chatRepository, times(1)).save(any(Chat.class));
+    }
+
+    @Test
+    @DisplayName("updateChatTitle: должен выбросить UnauthorizedException если пользователь не владелец")
+    void updateChatTitle_ShouldThrowUnauthorizedException_WhenUserNotOwner() {
+        Chat chat = createMockChat(CHAT_ID, "Old Title");
+        when(chatRepository.findById(CHAT_ID)).thenReturn(Optional.of(chat));
+
+        assertThrows(UnauthorizedException.class,
+                () -> chatService.updateChatTitle(CHAT_ID, OTHER_USER_ID, "New Title")
+        );
     }
 
     @Test
@@ -335,6 +354,20 @@ public class ChatServiceImplTest {
 
         // Assert
         assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("createChat: должен корректно обрезать title с 100+ словами")
+    void createChat_ShouldTruncateVeryLongTitle() {
+        // 100 слов
+        String veryLongTitle = "word ".repeat(100).trim();
+        when(chatRepository.save(any(Chat.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Chat result = chatService.createChat(USER_ID, veryLongTitle, null);
+
+        assertTrue(result.getTitle().length() <= 40);
+        // Проверяем что это не просто "New Chat", а действительно обрезанный текст
+        assertTrue(result.getTitle().startsWith("word"));
     }
 
     private Chat createMockChat(Long id, String title) {
