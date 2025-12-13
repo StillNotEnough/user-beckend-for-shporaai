@@ -1,0 +1,12 @@
+CREATE TABLE Chats (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(40) NOT NULL,
+    subject VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_chat_user_id ON Chats(user_id);
+CREATE INDEX idx_chat_title ON Chats(title);
